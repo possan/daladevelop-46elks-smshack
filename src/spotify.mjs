@@ -23,13 +23,19 @@ export const getAuthorizeLink = async () => {
 export const useAuthorizationCode = async (code) => {
   return spotifyApi.authorizationCodeGrant(code).then(
     function (data) {
-      console.log('The token expires in ' + data.body['expires_in'])
-      console.log('The access token is ' + data.body['access_token'])
-      console.log('The refresh token is ' + data.body['refresh_token'])
+      const accessToken = data.body['access_token']
+      const refreshToken = data.body['refresh_token']
+
+      console.log('The token expires in:', data.body['expires_in'])
+      console.log('The access token is:', accessToken)
+      console.log('The refresh token is:', refreshToken)
+
+      spotifyApi.setAccessToken(accessToken)
+      spotifyApi.setRefreshToken(refreshToken)
 
       return {
-        accessToken: data.body['access_token'],
-        refreshToken: data.body['refresh_token']
+        accessToken,
+        refreshToken
       }
     },
     function (err) {
@@ -39,8 +45,12 @@ export const useAuthorizationCode = async (code) => {
 }
 
 export const setCredentials = async (accessToken, refreshToken) => {
-  spotifyApi.setAccessToken(accessToken)
-  spotifyApi.setRefreshToken(refreshToken)
+  if (accessToken) {
+    spotifyApi.setAccessToken(accessToken)
+  }
+  if (refreshToken) {
+    spotifyApi.setRefreshToken(refreshToken)
+  }
 }
 
 const findTracks = async (query) => {
@@ -55,4 +65,23 @@ export const findRandomTopTrack = async (query) => {
     let randomTrack = tracks[Math.floor(Math.random() * Math.min(tracks.length, 4))]
     return randomTrack
   })
+}
+
+export const refreshCredentials = () => {
+  return spotifyApi.refreshAccessToken().then(
+    function (data) {
+      const accessToken = data.body['access_token']
+
+      console.log('The access token has been refreshed!', accessToken)
+
+      spotifyApi.setAccessToken(accessToken)
+
+      return {
+        accessToken
+      }
+    },
+    function (err) {
+      console.log('Could not refresh access token', err)
+    }
+  )
 }

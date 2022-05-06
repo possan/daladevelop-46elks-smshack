@@ -31,6 +31,11 @@ StoredCredentials.load().then((credentials) => {
 })
 
 // The login endpoint to start Spotify authorization
+app.get('/', (req, res) => {
+  res.send('Ok?')
+})
+
+// The login endpoint to start Spotify authorization
 app.get('/login', (req, res) => {
   console.log('GET /login')
   Spotify.getAuthorizeLink().then((authorizeURL) => {
@@ -122,7 +127,7 @@ app.get('/tts', (req, res) => {
   const text = req.query.text
   TTS.getOrGenerateTTSFile(text).then((mp3file) => {
     if (!mp3file) {
-      console.err('Failed to generate mp3 file')
+      console.error('Failed to generate mp3 file')
       return res.send(502)
     }
 
@@ -139,3 +144,9 @@ app.get('/tts', (req, res) => {
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`)
 })
+
+setInterval(() => {
+  Spotify.refreshCredentials().then((updatedCredentials) => {
+    StoredCredentials.save(updatedCredentials)
+  })
+}, 30 * 60000)

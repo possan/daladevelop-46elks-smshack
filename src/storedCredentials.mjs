@@ -1,6 +1,7 @@
 import fs from 'fs'
 
 const CREDENTIALS_FILE = 'temp/stored-credentials.json'
+let lastCredentials = {}
 
 export const load = async () => {
   if (!fs.existsSync(CREDENTIALS_FILE)) {
@@ -10,6 +11,7 @@ export const load = async () => {
   try {
     const credsJson = fs.readFileSync(CREDENTIALS_FILE, 'UTF-8')
     const creds = JSON.parse(credsJson)
+    lastCredentials = { ...lastCredentials, ...creds }
     return creds
   } catch (e) {
     console.log('Failed to load credentials', e)
@@ -18,5 +20,6 @@ export const load = async () => {
 }
 
 export const save = async (credentials) => {
-  fs.writeFileSync(CREDENTIALS_FILE, JSON.stringify(credentials, null, 2), 'UTF-8')
+  lastCredentials = { ...lastCredentials, ...credentials }
+  fs.writeFileSync(CREDENTIALS_FILE, JSON.stringify(lastCredentials, null, 2), 'UTF-8')
 }
